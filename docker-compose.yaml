@@ -1,3 +1,4 @@
+version: '3'
 
 volumes:
   postgres_volume:
@@ -20,4 +21,4 @@ services:
       dockerfile: migration.Dockerfile
     restart: on-failure
     environment:
-      DB_HOST: pg
+      DB_HOST: db

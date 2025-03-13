@@ -31,6 +31,17 @@ generate-note-api:
 	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
 	api/note_v1/note.proto
 
+PROTO_DIR=api/user_v1
+OUT_DIR=gen
+
+gen-proto:
+	protoc \
+		--go_out=$(OUT_DIR) \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=$(OUT_DIR) \
+		--go-grpc_opt=paths=source_relative \
+		$(PROTO_DIR)/*.proto
+
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
 LOCAL_MIGRATION_DSN="host=localhost port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable"
 

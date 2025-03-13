@@ -14,3 +14,7 @@ func Load(path string) error {
 type GRPCConfig interface {
 	Address() string
 }
+
+type PGConfig interface {
+	DSN() string
+}
