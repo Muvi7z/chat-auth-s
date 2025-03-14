@@ -2,23 +2,23 @@ package converter
 
 import (
 	"github.com/Muvi7z/chat-auth-s/gen/api/user_v1"
-	"github.com/Muvi7z/chat-auth-s/internal/repository/user/model"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/Muvi7z/chat-auth-s/internal/model"
+	modalRepo "github.com/Muvi7z/chat-auth-s/internal/repository/user/model"
 )
 
-func ToUserGetResponseFromRepo(user *model.User) *user_v1.GetResponse {
+func ToUserFromRepo(user *modalRepo.User) *model.User {
 
-	return &user_v1.GetResponse{
-		Id:        user.Id,
+	return &model.User{
+		ID:        user.Id,
 		Name:      user.Name,
 		Email:     user.Email,
 		Role:      0,
-		CreatedAt: timestamppb.New(user.CreatedAt),
-		UpdatedAt: timestamppb.New(user.UpdatedAt),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 }
 
-func ToUserCreateRequestFromRepo(user *model.User) *user_v1.CreateRequest {
+func ToUserCreateRequestFromRepo(user *modalRepo.User) *user_v1.CreateRequest {
 	return &user_v1.CreateRequest{
 		Name:     user.Name,
 		Email:    user.Email,

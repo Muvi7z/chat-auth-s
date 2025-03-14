@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/Muvi7z/chat-auth-s/gen/api/user_v1"
+	user3 "github.com/Muvi7z/chat-auth-s/internal/api/user"
 	"github.com/Muvi7z/chat-auth-s/internal/config"
 	"github.com/Muvi7z/chat-auth-s/internal/config/env"
 	user2 "github.com/Muvi7z/chat-auth-s/internal/repository/user"
@@ -14,9 +15,6 @@ import (
 	"log"
 	"net"
 )
-
-type Server struct {
-}
 
 var configPath string
 
@@ -52,13 +50,12 @@ func main() {
 	defer pool.Close()
 
 	userRepo := user2.NewRepository(pool)
+	userService := user.NewService(userRepo)
 
 	s := grpc.NewServer()
 	reflection.Register(s)
 
-	user_v1.RegisterUserV1Server(s, &user.Server{
-		UserRepository: userRepo,
-	})
+	user_v1.RegisterUserV1Server(s, user3.NewService(userService))
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)

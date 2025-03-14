@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"github.com/Muvi7z/chat-auth-s/gen/api/user_v1"
+	"github.com/Muvi7z/chat-auth-s/internal/model"
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, request *user_v1.CreateRequest) (int64, error)
-	Get(ctx context.Context, id int64) (*user_v1.GetResponse, error)
+	Create(ctx context.Context, request *model.User) (int64, error)
+	Get(ctx context.Context, id int64) (*model.User, error)
 }
