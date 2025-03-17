@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func (s *Service) Create(ctx context.Context, req *user_v1.CreateRequest) (*user_v1.CreateResponse, error) {
+func (s *Implementation) Create(ctx context.Context, req *user_v1.CreateRequest) (*user_v1.CreateResponse, error) {
 	id, err := s.userService.Create(ctx, converter2.ToUserFromCreate(req))
 	if err != nil {
 		return nil, err

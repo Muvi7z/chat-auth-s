@@ -21,7 +21,7 @@ type serviceProvider struct {
 	userRepository repository.UserRepository
 	pgConfig       config.PGConfig
 	grpcConfig     config.GRPCConfig
-	service        *user.Service
+	service        *user.Implementation
 	dbClient       db.Client
 	txManager      db.TxManager
 }
@@ -99,9 +99,9 @@ func (s *serviceProvider) UserService(ctx context.Context) services.UserService 
 	return s.userService
 }
 
-func (s *serviceProvider) UserServer(ctx context.Context) *user.Service {
+func (s *serviceProvider) UserServer(ctx context.Context) *user.Implementation {
 	if s.service == nil {
-		s.service = user.NewService(s.UserService(ctx))
+		s.service = user.NewImplementation(s.UserService(ctx))
 	}
 
 	return s.service

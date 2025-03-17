@@ -127,7 +127,7 @@ type UnsafeUserV1Server interface {
 func RegisterUserV1Server(s grpc.ServiceRegistrar, srv UserV1Server) {
 	// If the following call pancis, it indicates UnimplementedUserV1Server was
 	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
+	// unimplemented method is ever invoked, so we tests this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
