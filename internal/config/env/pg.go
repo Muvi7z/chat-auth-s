@@ -6,12 +6,16 @@ import (
 	"os"
 )
 
+const (
+	dsnEnvName = "PG_DSN"
+)
+
 type pgConfig struct {
 	dsn string
 }
 
 func NewPGConfig() (config.PGConfig, error) {
-	dsn := os.Getenv("PG_DNS")
+	dsn := os.Getenv(dsnEnvName)
 	if len(dsn) == 0 {
 		return nil, errors.New("PG_DNS environment variable not set")
 	}

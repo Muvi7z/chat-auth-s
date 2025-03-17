@@ -3,15 +3,15 @@ package user
 import (
 	"context"
 	"github.com/Masterminds/squirrel"
+	"github.com/Muvi7z/chat-auth-s/internal/client/db"
 	"github.com/Muvi7z/chat-auth-s/internal/model"
 	"github.com/Muvi7z/chat-auth-s/internal/repository"
 	"github.com/Muvi7z/chat-auth-s/internal/repository/user/converter"
 	modalRepo "github.com/Muvi7z/chat-auth-s/internal/repository/user/model"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
-	tableName      = "user"
+	tableName      = "users"
 	idColumn       = "id"
 	nameColumn     = "name"
 	emailColumn    = "email"
@@ -19,10 +19,10 @@ const (
 )
 
 type repo struct {
-	db *pgxpool.Pool
+	db db.Client
 }
 
-func NewRepository(db *pgxpool.Pool) repository.UserRepository {
+func NewRepository(db db.Client) repository.UserRepository {
 	return &repo{
 		db: db,
 	}
@@ -30,7 +30,7 @@ func NewRepository(db *pgxpool.Pool) repository.UserRepository {
 
 func (r *repo) Create(ctx context.Context, request *model.User) (int64, error) {
 	builder := squirrel.Insert(tableName).
-		Columns("name", "email", "password").
+		Columns(nameColumn, emailColumn, passwordColumn).
 		Values(request.Name, request.Email, request.Password).
 		Suffix("RETURNING id")
 
@@ -38,8 +38,13 @@ func (r *repo) Create(ctx context.Context, request *model.User) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	q := db.Query{
+		Name:     "user_repository.Create",
+		QueryRaw: query,
+	}
 	var id int64
-	err = r.db.QueryRow(ctx, query, args...).Scan(&id)
+	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -60,7 +65,12 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 
 	var user modalRepo.User
 
-	err = r.db.QueryRow(ctx, query, args...).Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+	q := db.Query{
+		Name:     "user_repository.Get",
+		QueryRaw: query,
+	}
+
+	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
 	if err != nil {
 		return nil, err
 	}
