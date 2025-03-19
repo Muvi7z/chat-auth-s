@@ -32,6 +32,7 @@ func (r *repo) Create(ctx context.Context, request *model.User) (int64, error) {
 	builder := squirrel.Insert(tableName).
 		Columns(nameColumn, emailColumn, passwordColumn).
 		Values(request.Name, request.Email, request.Password).
+		PlaceholderFormat(squirrel.Dollar).
 		Suffix("RETURNING \"id\"")
 
 	query, args, err := builder.ToSql()
@@ -56,7 +57,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	builder := squirrel.Select(idColumn, nameColumn, emailColumn, passwordColumn).
 		From(tableName).
 		Where(squirrel.Eq{idColumn: id}).
-		Limit(1)
+		PlaceholderFormat(squirrel.Dollar)
 
 	query, args, err := builder.ToSql()
 	if err != nil {

@@ -15,6 +15,8 @@ install-deps:
 	go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 	go install github.com/gojuno/minimock/v3/cmd/minimock@latest
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+	go install github.com/bufbuild/protoc-gen-validate
 
 get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
@@ -22,27 +24,19 @@ get-deps:
 
 
 generate:
-	make generate-note-api
-
-generate-note-api:
-	mkdir -p pkg/note_v1
-	protoc --proto_path api/note_v1 \
-	--go_out=pkg/note_v1 --go_opt=paths=source_relative \
-	--plugin=protoc-gen-go=bin/protoc-gen-go \
-	--go-grpc_out=pkg/note_v1 --go-grpc_opt=paths=source_relative \
-	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
-	api/note_v1/note.proto
+	make gen-proto
 
 PROTO_DIR=api/user_v1
-OUT_DIR=gen
+OUT_DIR=gen/api/user_v1
 
 gen-proto:
-	protoc \
+	protoc --proto_path api/user_v1 --proto_path vendor.protogen \
 		--go_out=$(OUT_DIR) \
 		--go_opt=paths=source_relative \
 		--go-grpc_out=$(OUT_DIR) \
 		--go-grpc_opt=paths=source_relative \
 		--grpc-gateway_out=$(OUT_DIR) --grpc-gateway_opt=paths=source_relative \
+		--validate_out lang=go:$(OUT_DIR) --validate_opt=paths=source_relative \
 		--plugin=proto-gen-grpc-gateway=./protoc-gen-grpc-gateway \
 		$(PROTO_DIR)/*.proto
 
@@ -65,6 +59,12 @@ vendor-proto:
 			@if [ ! -d vendor.protogen/google ]; then \
 						git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis &&\
 						mkdir -p  vendor.protogen/google/ &&\
-						mv vendor.protogen/googleapis/google/api google &&\
+						mv vendor.protogen/googleapis/google/api google/api &&\
 						rm -rf vendor.protogen/googleapis ;\
+			fi
+			@if [ ! -d vendor.protogen/validate ]; then \
+            			mkdir -p vendor.protogen/validate &&\
+            			git clone https://github.com/envoyproxy/protoc-gen-validate vendor.protogen/protoc-gen-validate &&\
+            			mv vendor.protogen/protoc-gen-validate/validate/*.proto vendor.protogen/validate &&\
+            			rm -rf vendor.protogen/protoc-gen-validate ;\
 			fi

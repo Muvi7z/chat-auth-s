@@ -9,6 +9,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/type.proto";
 import "google/protobuf/wrappers.proto";
 import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 service UserV1 {
   rpc Create(CreateRequest) returns (CreateResponse) {
@@ -64,7 +65,7 @@ message GetResponse {
 }
 
 message CreateRequest {
-  string name = 1;
+  string name = 1 [(validate.rules).string = {min_len:1, max_len: 50}];
   string email = 2;
   string password = 3;
   string password_confirm = 4;
