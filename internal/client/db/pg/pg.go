@@ -3,7 +3,7 @@ package pg
 import (
 	"context"
 	"github.com/Muvi7z/chat-auth-s/internal/client/db"
-	"github.com/georgysavva/scany/pgxscan"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"

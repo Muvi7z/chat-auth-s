@@ -32,7 +32,7 @@ func (r *repo) Create(ctx context.Context, request *model.User) (int64, error) {
 	builder := squirrel.Insert(tableName).
 		Columns(nameColumn, emailColumn, passwordColumn).
 		Values(request.Name, request.Email, request.Password).
-		Suffix("RETURNING id")
+		Suffix("RETURNING \"id\"")
 
 	query, args, err := builder.ToSql()
 	if err != nil {

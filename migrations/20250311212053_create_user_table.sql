@@ -4,7 +4,7 @@ create table "users" (
                       name text not null,
                       email text not null,
                       password text not null,
-                      created_at timestamp not null default now(),
+                      created_at timestamp default now(),
                       updated_at timestamp
 );
 

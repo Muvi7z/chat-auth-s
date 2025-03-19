@@ -10,6 +10,7 @@ import (
 func (s *Implementation) Create(ctx context.Context, req *user_v1.CreateRequest) (*user_v1.CreateResponse, error) {
 	id, err := s.userService.Create(ctx, converter2.ToUserFromCreate(req))
 	if err != nil {
+		log.Printf("error to create user: %s", err.Error())
 		return nil, err
 	}
 
