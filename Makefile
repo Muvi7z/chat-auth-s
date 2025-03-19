@@ -14,6 +14,7 @@ install-deps:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
 	go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 	go install github.com/gojuno/minimock/v3/cmd/minimock@latest
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
 
 get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
@@ -41,6 +42,8 @@ gen-proto:
 		--go_opt=paths=source_relative \
 		--go-grpc_out=$(OUT_DIR) \
 		--go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=$(OUT_DIR) --grpc-gateway_opt=paths=source_relative \
+		--plugin=proto-gen-grpc-gateway=./protoc-gen-grpc-gateway \
 		$(PROTO_DIR)/*.proto
 
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
@@ -57,3 +60,11 @@ local-migration-up:
 
 local-migration-down:
 	goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
+
+vendor-proto:
+			@if [ ! -d vendor.protogen/google ]; then \
+						git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis &&\
+						mkdir -p  vendor.protogen/google/ &&\
+						mv vendor.protogen/googleapis/google/api google &&\
+						rm -rf vendor.protogen/googleapis ;\
+			fi

@@ -26,7 +26,7 @@ const (
 	UserV1_Delete_FullMethodName = "/user_v1.UserV1/Delete"
 )
 
-// UserV1Client is the client API for UserV1 services.
+// UserV1Client is the client API for UserV1 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserV1Client interface {
@@ -84,7 +84,7 @@ func (c *userV1Client) Delete(ctx context.Context, in *DeleteRequest, opts ...gr
 	return out, nil
 }
 
-// UserV1Server is the server API for UserV1 services.
+// UserV1Server is the server API for UserV1 service.
 // All implementations must embed UnimplementedUserV1Server
 // for forward compatibility.
 type UserV1Server interface {
@@ -117,7 +117,7 @@ func (UnimplementedUserV1Server) Delete(context.Context, *DeleteRequest) (*empty
 func (UnimplementedUserV1Server) mustEmbedUnimplementedUserV1Server() {}
 func (UnimplementedUserV1Server) testEmbeddedByValue()                {}
 
-// UnsafeUserV1Server may be embedded to opt out of forward compatibility for this services.
+// UnsafeUserV1Server may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UserV1Server will
 // result in compilation errors.
 type UnsafeUserV1Server interface {
@@ -127,7 +127,7 @@ type UnsafeUserV1Server interface {
 func RegisterUserV1Server(s grpc.ServiceRegistrar, srv UserV1Server) {
 	// If the following call pancis, it indicates UnimplementedUserV1Server was
 	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we tests this at initialization
+	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
@@ -207,7 +207,7 @@ func _UserV1_Delete_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-// UserV1_ServiceDesc is the grpc.ServiceDesc for UserV1 services.
+// UserV1_ServiceDesc is the grpc.ServiceDesc for UserV1 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserV1_ServiceDesc = grpc.ServiceDesc{
