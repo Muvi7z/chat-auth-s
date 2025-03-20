@@ -16,7 +16,10 @@ install-deps:
 	go install github.com/gojuno/minimock/v3/cmd/minimock@latest
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-	go install github.com/bufbuild/protoc-gen-validate
+	go get github.com/bufbuild/protoc-gen-validate
+	go get github.com/envoyproxy/protoc-gen-validate
+	go install github.com/envoyproxy/protoc-gen-validate
+	go install github.com/rakyll/statik@latest
 
 get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
@@ -24,7 +27,9 @@ get-deps:
 
 
 generate:
+	mkdir -p pkg/swagger
 	make gen-proto
+	statik -src=pkg/swagger/ -include='*.css,*.html,*.js,*.json,*.png'
 
 PROTO_DIR=api/user_v1
 OUT_DIR=gen/api/user_v1
@@ -38,6 +43,7 @@ gen-proto:
 		--grpc-gateway_out=$(OUT_DIR) --grpc-gateway_opt=paths=source_relative \
 		--validate_out lang=go:$(OUT_DIR) --validate_opt=paths=source_relative \
 		--plugin=proto-gen-grpc-gateway=./protoc-gen-grpc-gateway \
+		--openapiv2_out=allow_merge=true,merge_file_name=api:pkg/swagger \
 		$(PROTO_DIR)/*.proto
 
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
@@ -67,4 +73,10 @@ vendor-proto:
             			git clone https://github.com/envoyproxy/protoc-gen-validate vendor.protogen/protoc-gen-validate &&\
             			mv vendor.protogen/protoc-gen-validate/validate/*.proto vendor.protogen/validate &&\
             			rm -rf vendor.protogen/protoc-gen-validate ;\
+			fi
+			@if [ ! -d vendor.protogen/protoc-gen-openapiv2 ]; then \
+            			mkdir -p vendor.protogen/protoc-gen-openapiv2/options &&\
+            			git clone https://github.com/grpc-ecosystem/grpc-gateway vendor.protogen/openapiv2 &&\
+            			mv vendor.protogen/openapiv2/protoc-gen-openapiv2/options/*.proto vendor.protogen/protoc-gen-openapiv2/options &&\
+            			rm -rf vendor.protogen/openapiv2 ;\
 			fi

@@ -22,6 +22,7 @@ type serviceProvider struct {
 	pgConfig       config.PGConfig
 	grpcConfig     config.GRPCConfig
 	httpConfig     config.HTTPConfig
+	swaggerConfig  config.SwaggerConfig
 	service        *user.Implementation
 	dbClient       db.Client
 	txManager      db.TxManager
@@ -87,6 +88,19 @@ func (s *serviceProvider) HTTPConfig() config.HTTPConfig {
 	}
 
 	return s.httpConfig
+}
+
+func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
+	if s.swaggerConfig == nil {
+		cfg, err := env.NewSwaggerConfig()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		s.swaggerConfig = cfg
+	}
+
+	return s.swaggerConfig
 }
 
 func (s *serviceProvider) TxManager(ctx context.Context) db.TxManager {

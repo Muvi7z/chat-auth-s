@@ -6,12 +6,32 @@ option go_package = "chat-auth-s.api.user_v1;user_v1";
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/type.proto";
 import "google/protobuf/wrappers.proto";
 import "google/api/annotations.proto";
 import "validate/validate.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "User Api"
+    version: "0.9.2"
+    contact: {
+      name: "Ochir Zhamsuev"
+      email: "ochir-zhamsuev@yandex.ru"
+    };
+  };
+
+  host: "localhost:8080",
+  schemes: HTTP,
+  schemes: HTTPS,
+  consumes: "application/json",
+  produces: "application/json",
+
+
+};
 
 service UserV1 {
+  //Создает нового пользователя
   rpc Create(CreateRequest) returns (CreateResponse) {
     option (google.api.http) = {
       post: "/user/v1/create"
@@ -57,6 +77,7 @@ message GetRequest {
 
 message GetResponse {
   int64 id = 1;
+
   string name = 2;
   string email = 3;
   Role role = 4;
@@ -65,8 +86,11 @@ message GetResponse {
 }
 
 message CreateRequest {
+  //Имя пользователя
   string name = 1 [(validate.rules).string = {min_len:1, max_len: 50}];
+  // Почта пользователя
   string email = 2;
+  // Пароль пользователя
   string password = 3;
   string password_confirm = 4;
   Role role = 5;
