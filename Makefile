@@ -46,6 +46,25 @@ gen-proto:
 		--openapiv2_out=allow_merge=true,merge_file_name=api:pkg/swagger \
 		$(PROTO_DIR)/*.proto
 
+gen-auth-proto:
+	mkdir -p gen/api/auth_v1
+	protoc --proto_path api/auth_v1  \
+		--go_out=gen/api/auth_v1 \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=gen/api/auth_v1 \
+		--go-grpc_opt=paths=source_relative \
+		api/auth_v1/*.proto
+
+
+gen-access-proto:
+	mkdir -p gen/api/access_v1
+	protoc --proto_path api/access_v1  \
+		--go_out=gen/api/access_v1 \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=gen/api/access_v1 \
+		--go-grpc_opt=paths=source_relative \
+		api/access_v1/*.proto
+
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
 LOCAL_MIGRATION_DSN="host=localhost port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable"
 
@@ -80,3 +99,11 @@ vendor-proto:
             			mv vendor.protogen/openapiv2/protoc-gen-openapiv2/options/*.proto vendor.protogen/protoc-gen-openapiv2/options &&\
             			rm -rf vendor.protogen/openapiv2 ;\
 			fi
+
+gen-cert:
+	openssl genrsa -out ca.key 4096
+	openssl req -new -x509 -key ca.key -sha256 -subj "/C=US/ST=NJ/O=CA, Inc." -days 365 -out ca.cert
+	openssl genrsa -out service.key 4096
+	openssl req -new -key service.key -out service.csr -config certificate.conf
+	openssl x509 -req -in service.csr -CA ca.cert -CAkey ca.key -CAcreateserial \
+    		-out service.pem -days 365 -sha256 -extfile certificate.conf -extensions req_ext

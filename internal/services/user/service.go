@@ -2,12 +2,10 @@ package user
 
 import (
 	"context"
-	"github.com/Muvi7z/chat-auth-s/gen/api/user_v1"
 	"github.com/Muvi7z/chat-auth-s/internal/client/db"
 	"github.com/Muvi7z/chat-auth-s/internal/model"
 	"github.com/Muvi7z/chat-auth-s/internal/repository"
 	"github.com/Muvi7z/chat-auth-s/internal/services"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Service struct {
@@ -45,12 +43,4 @@ func (s serv) Get(context context.Context, id int64) (*model.User, error) {
 func (s serv) Create(ctx context.Context, user *model.User) (int64, error) {
 	//TODO implement me
 	panic("implement me")
-}
-
-func (s *Service) Update(ctx context.Context, request *user_v1.UpdateRequest) (*emptypb.Empty, error) {
-	return nil, nil
-}
-
-func (s *Service) Delete(ctx context.Context, request *user_v1.DeleteRequest) (*emptypb.Empty, error) {
-	return nil, nil
 }
