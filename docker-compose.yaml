@@ -40,3 +40,9 @@ services:
       - "3030:3030"
     volumes:
       - grafana_data:/var/lib/grafana
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.48
+    ports:
+      - "5575:5575/udp"
+      - "16686:16686/udp"
