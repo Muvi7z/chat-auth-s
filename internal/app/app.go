@@ -9,6 +9,7 @@ import (
 	"github.com/Muvi7z/chat-auth-s/internal/interceptor"
 	"github.com/Muvi7z/chat-auth-s/internal/logger"
 	"github.com/Muvi7z/chat-auth-s/internal/metrics"
+	"github.com/Muvi7z/chat-auth-s/internal/tracing"
 	_ "github.com/Muvi7z/chat-auth-s/statik"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -30,6 +31,8 @@ import (
 )
 
 var logLevel = flag.String("l", "info", "Log level")
+
+const serviceName = "chat-auth-service"
 
 type App struct {
 	serviceProvider *serviceProvider
@@ -103,6 +106,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initLogger,
+		a.InitTracer,
 		metrics.Init,
 	}
 
@@ -111,6 +115,15 @@ func (a *App) initDeps(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (a *App) InitTracer(_ context.Context) error {
+	err := tracing.Init(serviceName)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -138,6 +151,8 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 				interceptor.LogInterceptor,
 				interceptor.ValidateInterceptor,
 				interceptor.MetricsInterceptor,
+				interceptor.SeverTracingInterceptor,
+				//interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
 			),
 		),
 	)
