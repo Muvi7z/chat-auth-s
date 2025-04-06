@@ -22,7 +22,7 @@ func NewHttpConfig() (config.HTTPConfig, error) {
 	}
 
 	port := os.Getenv(httpPortEnvName)
-	if len(host) == 0 {
+	if len(port) == 0 {
 		return nil, fmt.Errorf("environment variable %s is not found", httpPortEnvName)
 	}
 

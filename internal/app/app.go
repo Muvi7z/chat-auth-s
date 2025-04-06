@@ -3,12 +3,14 @@ package app
 import (
 	"context"
 	"flag"
+	"fmt"
 	"github.com/Muvi7z/chat-auth-s/gen/api/user_v1"
 	"github.com/Muvi7z/chat-auth-s/internal/closer"
 	"github.com/Muvi7z/chat-auth-s/internal/config"
 	"github.com/Muvi7z/chat-auth-s/internal/interceptor"
 	"github.com/Muvi7z/chat-auth-s/internal/logger"
 	"github.com/Muvi7z/chat-auth-s/internal/metrics"
+	"github.com/Muvi7z/chat-auth-s/internal/rate_limiter"
 	"github.com/Muvi7z/chat-auth-s/internal/tracing"
 	_ "github.com/Muvi7z/chat-auth-s/statik"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -17,6 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
+	"github.com/sony/gobreaker/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -28,9 +31,12 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 )
 
 var logLevel = flag.String("l", "info", "Log level")
+
+const rateLimit = 10
 
 const serviceName = "chat-auth-service"
 
@@ -93,7 +99,6 @@ func (a *App) Run() error {
 			log.Fatalf("failed to start prometheus server: %v", err)
 		}
 	}()
-
 	wg.Wait()
 
 	return nil
@@ -106,6 +111,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initLogger,
+		a.initSwagger,
 		a.InitTracer,
 		metrics.Init,
 	}
@@ -144,15 +150,33 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+
+	rateLimiter := rate_limiter.NewTokenBucketLimiter(ctx, rateLimit, time.Second)
+
+	cb := gobreaker.NewCircuitBreaker[any](gobreaker.Settings{
+		Name:        "my-service",
+		MaxRequests: 3,
+		Timeout:     5 * time.Second,
+		ReadyToTrip: func(counts gobreaker.Counts) bool {
+			failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+			return failureRatio >= 0.6
+		},
+		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+			logger.Info(fmt.Sprintf("Circuit Breaker: %s, changed from %s, to %s", name, from.String(), to.String()))
+		},
+	})
+
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.UnaryInterceptor(
 			grpcMiddleware.ChainUnaryServer(
 				interceptor.LogInterceptor,
 				interceptor.ValidateInterceptor,
+				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
+				interceptor.NewCircuitBreakerInterceptor(cb).Unary,
 				interceptor.MetricsInterceptor,
 				interceptor.SeverTracingInterceptor,
-				//interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
+				interceptor.ErrorCodesInterceptor,
 			),
 		),
 	)
@@ -163,7 +187,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) initLogger(ctx context.Context) error {
+func (a *App) initLogger(_ context.Context) error {
 	var level zapcore.Level
 	if err := level.Set(*logLevel); err != nil {
 		log.Fatalf("failed to set log level: %v", err)
@@ -210,7 +234,7 @@ func (a *App) initSwagger(_ context.Context) error {
 	mux.HandleFunc("/api.swagger.json", serveSwaggerFile("/api.swagger.json"))
 
 	a.swaggerServer = &http.Server{
-		Addr:    a.serviceProvider.HTTPConfig().Address(),
+		Addr:    a.serviceProvider.SwaggerConfig().Address(),
 		Handler: mux,
 	}
 
@@ -218,9 +242,9 @@ func (a *App) initSwagger(_ context.Context) error {
 }
 
 func (a *App) runSwaggerServer() error {
-	log.Println("starting http server on " + a.serviceProvider.SwaggerConfig().Address())
+	log.Println("starting swagger server on " + a.serviceProvider.SwaggerConfig().Address())
 
-	err := a.httpServer.ListenAndServe()
+	err := a.swaggerServer.ListenAndServe()
 	if err != nil {
 		return err
 	}
@@ -304,7 +328,7 @@ func serveSwaggerFile(path string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Serving swagger file %s", path)
 
-		statilFs, err := fs.New()
+		statikFs, err := fs.New()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -312,7 +336,7 @@ func serveSwaggerFile(path string) http.HandlerFunc {
 
 		log.Printf("Opening swagger file %s", path)
 
-		file, err := statilFs.Open(path)
+		file, err := statikFs.Open(path)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

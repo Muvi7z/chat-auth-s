@@ -15,20 +15,20 @@ type swaggerConfig struct {
 	host string
 }
 
-func NewSwaggerConfig() (config.HTTPConfig, error) {
-	host := os.Getenv(httpHostEnvName)
+func NewSwaggerConfig() (config.SwaggerConfig, error) {
+	host := os.Getenv(swaggerHostEnvName)
 	if len(host) == 0 {
-		return nil, fmt.Errorf("environment variable %s is not found", httpHostEnvName)
+		return nil, fmt.Errorf("environment variable %s is not found", swaggerHostEnvName)
 	}
 
-	port := os.Getenv(httpPortEnvName)
+	port := os.Getenv(swaggerPortEnvName)
 	if len(host) == 0 {
-		return nil, fmt.Errorf("environment variable %s is not found", httpPortEnvName)
+		return nil, fmt.Errorf("environment variable %s is not found", swaggerPortEnvName)
 	}
 
 	return &swaggerConfig{port, host}, nil
 }
 
-func (h *swaggerConfig) Address() string {
-	return net.JoinHostPort(h.host, h.port)
+func (s *swaggerConfig) Address() string {
+	return net.JoinHostPort(s.host, s.port)
 }
